@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import transport from "../config/nodemailer.js";
 import userModel from "../models/userModel.js";
 
 export const register = async (req, res) => {
@@ -29,6 +30,25 @@ export const register = async (req, res) => {
       maxAge: 1000 * 60 * 60 * 24 * 7,
       httpOnly: true,
     });
+    // sending welcome email
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL, // Properly formatted sender
+      to: email,
+      subject: "Welcome to Sani IT",
+      text: `Welcome, ${name}! Your email: ${email}`,
+    };
+    console.log("Sending email to:", email);
+    console.log("SMTP User:", process.env.SMTP_USER);
+    console.log("SMTP Pass Loaded:", process.env.SMTP_PASS ? "Yes" : "No");
+    console.log("mailOptions", mailOptions);
+    transport.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error("Error sending email:", err);
+      } else {
+        console.log("Email sent successfully:", info);
+      }
+    });
+
     return res.json({ message: "Registered successfully", success: true });
   } catch (error) {
     return res.json({ message: error.message, success: false });
